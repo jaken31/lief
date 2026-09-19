@@ -1,23 +1,12 @@
 /*
  * Loaded with ?inline and injected into the banner's shadow root as a <style>.
- * Nothing here leaks to the host page and nothing from the host page reaches here.
+ * Nothing here leaks out, and nothing from the host page reaches in.
  *
- * `all: initial` on :host stops inherited properties (font, colour, line-height,
- * direction) from crossing the shadow boundary. The host element's own geometry is
- * pinned with inline !important from banner.ts, which outranks any page stylesheet.
+ * There is deliberately no :host rule. The host element is the one thing the page
+ * can still reach, and for the host, outer-tree rules beat :host — so its geometry
+ * and typography are pinned with inline !important in banner.ts instead. Everything
+ * below the host is inside the shadow tree and safe.
  */
-
-:host {
-  all: initial;
-  display: block;
-  font-family: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue',
-    Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.45;
-  text-align: left;
-  direction: ltr;
-  color-scheme: dark;
-}
 
 * {
   box-sizing: border-box;

@@ -63,6 +63,18 @@ describe('mountBanner', () => {
     expect(handle.host.style.getPropertyValue('z-index')).toBe('2147483647');
   });
 
+  it('pins typography inline too, because font inherits across the shadow boundary', () => {
+    const { handle } = mount();
+    mounted = handle;
+
+    // `* { font-family: Georgia !important }` on the host page beats a :host rule and
+    // then inherits into every line of the warning. Only inline !important stops it.
+    expect(handle.host.style.getPropertyPriority('font-family')).toBe('important');
+    expect(handle.host.style.getPropertyValue('font-family')).toContain('ui-sans-serif');
+    expect(handle.host.style.getPropertyPriority('font-size')).toBe('important');
+    expect(handle.host.style.getPropertyPriority('line-height')).toBe('important');
+  });
+
   it('renders the three regions in the order the TRD fixes', () => {
     const { handle, root } = mount();
     mounted = handle;

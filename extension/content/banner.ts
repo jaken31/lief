@@ -19,11 +19,22 @@ import { lessonNumber, lessonTitle } from './contracts';
 export const BANNER_TAG = 'lief-warning';
 
 /**
- * Pinned inline with !important. Inline important outranks author important, so a
- * hostile page cannot hide the warning with `div { display: none !important }` —
- * the failure mode that shadow DOM alone does not cover.
+ * The host element is the one part of the banner the page can still style: for the
+ * host, outer-tree rules beat :host rules, so the shadow stylesheet cannot defend it.
+ * Inline !important can — it is the only thing above author !important in the cascade.
+ *
+ * `all: initial` leads, wiping whatever the page forced on, and the declarations after
+ * it put back what we need. Everything else stays at its initial value, which is
+ * already safe. Order matters: later declarations in an inline block win.
+ *
+ * Typography is here rather than in :host for the same reason. Font properties are
+ * inherited, so a page rule as ordinary as `* { font-family: Georgia !important }`
+ * reaches the host and then flows across the shadow boundary into every line of the
+ * warning.
  */
 const HOST_STYLE: ReadonlyArray<readonly [string, string]> = [
+  ['all', 'initial'],
+
   ['position', 'fixed'],
   ['inset', '0 0 auto 0'],
   ['width', 'auto'],
@@ -42,6 +53,14 @@ const HOST_STYLE: ReadonlyArray<readonly [string, string]> = [
   ['clip-path', 'none'],
   ['pointer-events', 'auto'],
   ['contain', 'none'],
+
+  [
+    'font-family',
+    "ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
+  ],
+  ['font-size', '14px'],
+  ['line-height', '1.45'],
+  ['color-scheme', 'dark'],
 ];
 
 /** TRD §3.2 — the secondary lesson, emitted only in context. */
