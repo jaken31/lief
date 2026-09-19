@@ -1,0 +1,186 @@
+/* Plain CSS, scoped to the course page, so Track D has no dependency on the
+   Tailwind config landing. Swap for utility classes later if that is preferred —
+   the markup in Course.tsx is the only thing that changes. */
+
+:root {
+  --ink: #16181d;
+  --ink-soft: #5a616e;
+  --line: #e3e6ec;
+  --paper: #ffffff;
+  --wash: #f6f7f9;
+  --accent: #b3341f;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--wash);
+  color: var(--ink);
+  font-family: ui-sans-serif, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.page {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 3.5rem 1.5rem 6rem;
+}
+
+.page-head {
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 1.75rem;
+  margin-bottom: 2rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+h1 {
+  margin: 0;
+  font-size: 2.1rem;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.lede {
+  margin: 0.75rem 0 0;
+  color: var(--ink-soft);
+}
+
+/* Index */
+
+.lesson-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lesson-card {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.lesson-card:hover {
+  border-color: var(--ink-soft);
+}
+
+.lesson-number {
+  flex: none;
+  width: 1.9rem;
+  height: 1.9rem;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--wash);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+}
+
+.lesson-card-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.lesson-card-title {
+  font-weight: 600;
+}
+
+.lesson-card-subtitle {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.lesson-minutes {
+  flex: none;
+  font-size: 0.85rem;
+  color: var(--ink-soft);
+}
+
+/* Lesson */
+
+.back,
+.next {
+  display: inline-block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.back {
+  margin-bottom: 1.5rem;
+}
+
+.back::before {
+  content: "← ";
+}
+
+.prose p {
+  margin: 0 0 1.25rem;
+}
+
+.spot-it {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 1.25rem 1.5rem;
+  margin: 2rem 0;
+}
+
+.spot-it h2 {
+  margin: 0 0 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.spot-it ul {
+  margin: 0;
+  padding-left: 1.1rem;
+}
+
+.spot-it li {
+  margin-bottom: 0.5rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.92rem;
+}
+
+.spot-it li:last-child {
+  margin-bottom: 0;
+}
+
+.detector {
+  color: var(--ink-soft);
+  font-size: 0.92rem;
+  border-left: 3px solid var(--accent);
+  padding-left: 0.9rem;
+  margin: 0 0 2rem;
+}
+
+.detector strong {
+  color: var(--ink);
+}

@@ -1,0 +1,94 @@
+{
+  "lessons": [
+    {
+      "id": "url-anatomy",
+      "number": 1,
+      "title": "Anatomy of a URL",
+      "subtitle": "Where the real domain actually lives",
+      "minutes": 3,
+      "detector": "Host parsing — the domain Lief names in every warning",
+      "body": [
+        "Read a URL right to left, not left to right. In https://accounts.google.com.verify-login.co/signin the real domain is verify-login.co. Everything to the left of it — including the reassuring accounts.google.com — is a subdomain that the owner of verify-login.co invented. They can set it to any text they like, and they chose that text to fool you.",
+        "A URL has four parts in fixed order: the scheme (https://), the host (accounts.google.com.verify-login.co), the path (/signin), and the query (?next=home). Only the host decides which computer you are actually talking to. The path and the query are just text the site made up about itself.",
+        "So the whole skill is one move: find the first single slash after the scheme, look immediately to its left, and take the last two labels. That is the domain. That is who receives your password."
+      ],
+      "spotIt": [
+        "https://paypal.com.secure-billing.net/login → the domain is secure-billing.net",
+        "https://login.microsoftonline.com/common → the domain is microsoftonline.com",
+        "https://amazon-support.help/orders → the domain is amazon-support.help, not amazon.com"
+      ]
+    },
+    {
+      "id": "lookalike-domains",
+      "number": 2,
+      "title": "Lookalike domains",
+      "subtitle": "Homoglyphs, typosquats, and punycode",
+      "minutes": 3,
+      "detector": "Edit distance and confusable-character folding against a known-brand list",
+      "body": [
+        "paypa1.com is not paypal.com. The fifth character is the digit 1, sitting where the letter l belongs. In the address bar's font the two shapes are nearly identical, and that similarity is the entire attack — there is no exploit here, only your eyes moving quickly.",
+        "The trick comes in three forms. Typosquats are one character off: gooogle.com, arnazon.com, where the pair r-n reads as an m at a glance. Homoglyphs use characters from other alphabets that render identically — a Cyrillic а is a completely different character from a Latin a, and a domain can be built entirely out of them. Punycode is how Chrome writes those domains when it gets suspicious: a host beginning xn-- is a non-Latin domain shown in its encoded form, and on a login page that is a red flag.",
+        "You will not win this by squinting harder. Make it procedural instead: never reach a login page by clicking a link. Type the domain or use your own bookmark, every time."
+      ],
+      "spotIt": [
+        "paypa1.com — digit 1 where the letter l belongs",
+        "arnazon.com — the letters r and n reading as a single m",
+        "xn--80ak6aa92e.com — punycode; the letters you see are not the letters that were typed"
+      ]
+    },
+    {
+      "id": "phishing-pressure",
+      "number": 3,
+      "title": "Urgency, authority, and the ask",
+      "subtitle": "Every phishing message has the same three bones",
+      "minutes": 3,
+      "detector": "Password field on an origin you have never used before",
+      "body": [
+        "Strip the story from any phishing message and the same skeleton is left. Urgency: your account will be suspended in 24 hours. Authority: sent by the IT Security Team, or your bank, or a delivery company. And the ask, which is always credentials or a payment. The story changes endlessly. Those three bones do not.",
+        "Urgency is there for one reason — to stop you verifying. Verification is free and takes two minutes, so the attack has to make two minutes feel expensive. That is why the deadline is always today, always short, and always carries a consequence you would rather avoid.",
+        "Turn that around and it becomes your detector. The pressure itself is the signal. When you notice it, stop and reach the organisation the way you normally would: open their app, use your own bookmark, call the number printed on your card. A real bank will still be your bank tomorrow. Anything that punishes you for taking ten minutes has just told you what it is."
+      ],
+      "spotIt": [
+        "A deadline measured in hours, on a message you did not expect",
+        "The sender is a role — Security Team, Payroll, Support — not a person you know",
+        "The final step is always typing a password or sending money"
+      ]
+    },
+    {
+      "id": "https-is-not-safe",
+      "number": 4,
+      "title": "What the padlock actually proves",
+      "subtitle": "Transport, not trustworthiness",
+      "minutes": 3,
+      "detector": "Shown alongside any warning on an HTTPS page",
+      "body": [
+        "The padlock means the connection is encrypted: nobody sitting between you and that server can read what you send. It is a statement about the pipe. It says nothing whatsoever about who is standing at the other end of it.",
+        "Certificates are free and issued automatically, in seconds, to anyone who controls a domain name. A phishing site registered this morning has a valid padlock before it has a logo. The large majority of phishing pages today are HTTPS, because the padlock is now the easiest part of the disguise to obtain.",
+        "So: the padlock proves your data arrives unread. It does not prove the site is who it claims to be, that the company is real, or that typing your password here is safe. \"It must be fine, it's secure\" is the sentence to catch yourself on — encrypted delivery to a criminal is still delivery. When you see the padlock, you have learned everything it has to tell you. Read the domain next."
+      ],
+      "spotIt": [
+        "Padlock present, domain unfamiliar → the padlock is irrelevant",
+        "No padlock on a login page → leave, but a padlock is not permission to stay",
+        "\"Secure\" in a site's own text is marketing; the browser's own indicator is the only one that counts"
+      ]
+    },
+    {
+      "id": "downloads-and-permissions",
+      "number": 5,
+      "title": "Downloads and permissions",
+      "subtitle": "Double extensions, prompts, and sideloading",
+      "minutes": 3,
+      "detector": "Risky and double file extensions intercepted at download time",
+      "body": [
+        "invoice.pdf.exe is a program, not a document. Windows hides known file extensions by default, so it arrives in your Downloads folder displaying as invoice.pdf, and the only surviving clue is an icon that looks slightly wrong. The double extension is among the oldest tricks in the field and it still works, because the operating system is helping to hide it.",
+        "Learn the extensions that run code: exe, scr, bat, cmd, msi, js, vbs, jar, apk, dmg, pkg. An invoice, a CV, a photo, a shipping label — none of them are ever one of these. Zip and iso files deserve the same suspicion, because they are usually wrapping one of the above to get it past a mail scanner.",
+        "Permission prompts are the same decision in the browser. A page asking for notifications, location, camera, or microphone is asking for something ongoing. Ask what this page needs it for, right now. A shopping page does not need to send you notifications; it would simply like to. Decide before you click, not after the file has landed."
+      ],
+      "spotIt": [
+        "invoice.pdf.exe — a real extension hidden behind a fake one",
+        "A download you did not initiate, starting on page load",
+        "A permission prompt for something the page's actual job does not require"
+      ]
+    }
+  ]
+}
