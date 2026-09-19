@@ -20,6 +20,7 @@ const PASSWORD_DEBOUNCE_MS = 250;
 
 let banner: BannerHandle | null = null;
 let dismissed = false;
+let teardown: (() => void)[] = [];
 
 function debug(...args: unknown[]): void {
   if (import.meta.env.DEV) console.debug('[lief]', ...args);
@@ -98,7 +99,7 @@ export function render(event: RiskEvent): void {
  */
 function watchPasswordFields(): void {
   let reported: boolean | null = null;
-  let queued = false;
+  let debounce: ReturnType<typeof setTimeout> | undefined;
 
   const report = (): void => {
     const hasPassword = document.querySelector('input[type="password"]') !== null;
@@ -110,18 +111,30 @@ function watchPasswordFields(): void {
   report();
 
   const observer = new MutationObserver(() => {
-    if (queued) return;
-    queued = true;
-    setTimeout(() => {
-      queued = false;
+    if (debounce !== undefined) return;
+    debounce = setTimeout(() => {
+      debounce = undefined;
       report();
     }, PASSWORD_DEBOUNCE_MS);
   });
 
-  observer.observe(document.documentElement, { childList: true, subtree: true });
-  setTimeout(() => {
+  // body, not documentElement: credential forms live there, and the banner mounts on
+  // documentElement, so watching that would make the warning trigger its own rescan.
+  observer.observe(document.body ?? document.documentElement, {
+    childList: true,
+    subtree: true,
+  });
+
+  const stopWatching = setTimeout(() => {
     observer.disconnect();
   }, PASSWORD_WATCH_MS);
+
+  teardown.push(() => {
+    observer.disconnect();
+    clearTimeout(stopWatching);
+    // A debounce already in flight would otherwise still fire one stale report.
+    if (debounce !== undefined) clearTimeout(debounce);
+  });
 }
 
 export function start(): void {
@@ -151,8 +164,14 @@ export function start(): void {
   watchPasswordFields();
 }
 
-/** Test hook — the module is a singleton and tests need a clean slate. */
+/**
+ * Test hook. The module is a page-lifetime singleton, so a test that loads it a
+ * second time otherwise leaves the first instance's MutationObserver attached to
+ * the shared jsdom document, still posting messages.
+ */
 export function resetForTests(): void {
+  for (const dispose of teardown) dispose();
+  teardown = [];
   banner?.remove();
   banner = null;
   dismissed = false;
