@@ -4,9 +4,14 @@ import type { Lesson } from './types';
 
 const LESSONS: Lesson[] = lessonsData.lessons;
 
-/** The banner deep-links to `pages/course/index.html#<lessonId>`. */
+/**
+ * The banner deep-links to `pages/course/index.html#<lessonId>`. Any query
+ * string appended to the hash is discarded, so a link carrying tracking params
+ * still lands on the lesson instead of quietly falling back to the index.
+ */
 function useLessonId(): string {
-  const read = () => decodeURIComponent(window.location.hash.replace(/^#/, ''));
+  const read = () =>
+    decodeURIComponent(window.location.hash.replace(/^#/, '').split(/[?&]/)[0]).trim();
   const [lessonId, setLessonId] = useState(read);
 
   useEffect(() => {
