@@ -58,41 +58,50 @@ export default function App() {
   const leftRate = summary.total > 0 ? Math.round((summary.actions.left / summary.total) * 100) : 0;
 
   return (
-    <main className="mx-auto max-w-5xl px-6 py-10">
-      <header className="mb-8 flex flex-wrap items-start justify-between gap-4">
+    <main className="mx-auto max-w-5xl px-6 py-14">
+      <header className="mb-10 flex flex-wrap items-end justify-between gap-5 border-b border-[var(--gridline)] pb-7">
         <div>
-          <h1 className="text-3xl font-semibold tracking-tight text-slate-50">Review</h1>
-          <p className="mt-1 text-sm text-slate-400">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--ink-muted)]">
+            Lief
+          </p>
+          <h1 className="mt-2 text-[34px] font-semibold leading-none tracking-[-0.03em] text-[var(--ink)]">
+            Review
+          </h1>
+          <p className="mt-2.5 max-w-lg text-[15px] leading-relaxed text-[var(--ink-2)]">
             What Lief flagged in the last 7 days, grouped by the concept behind it.
           </p>
         </div>
         <div className="flex items-center gap-2">
           {source === 'sample' ? (
-            <span className="rounded-full border border-slate-700 bg-slate-900 px-3 py-1 text-xs text-slate-300">
+            <span className="rounded-full border border-[var(--hairline)] bg-[var(--surface)] px-3 py-1.5 text-[12px] font-medium text-[var(--ink-2)]">
               Sample data
             </span>
           ) : null}
           <button
             type="button"
             onClick={() => void refresh(source)}
-            className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:border-slate-500 hover:text-white"
+            className="rounded-xl border border-[var(--hairline)] bg-[var(--surface)] px-3.5 py-2 text-[13px] font-medium text-[var(--ink-2)] hover:border-[var(--baseline)] hover:text-[var(--ink)]"
           >
             Refresh
           </button>
           {confirmingWipe ? (
-            <span className="flex items-center gap-2 rounded-lg border border-rose-500/40 bg-rose-500/10 px-3 py-1.5 text-sm">
-              <span className="text-rose-200">Delete {summary.total} events?</span>
+            <span
+              className="flex items-center gap-2.5 rounded-xl border px-3.5 py-2 text-[13px]"
+              style={{ borderColor: 'rgb(208 59 59 / 35%)', background: 'rgb(208 59 59 / 6%)' }}
+            >
+              <span style={{ color: 'var(--critical)' }}>Delete {summary.total} events?</span>
               <button
                 type="button"
                 onClick={() => void onWipe()}
-                className="font-medium text-rose-300 hover:text-rose-200"
+                className="font-semibold"
+                style={{ color: 'var(--critical)' }}
               >
                 Yes
               </button>
               <button
                 type="button"
                 onClick={() => setConfirmingWipe(false)}
-                className="text-slate-400 hover:text-slate-200"
+                className="text-[var(--ink-muted)] hover:text-[var(--ink)]"
               >
                 Cancel
               </button>
@@ -101,7 +110,7 @@ export default function App() {
             <button
               type="button"
               onClick={() => setConfirmingWipe(true)}
-              className="rounded-lg border border-slate-700 px-3 py-1.5 text-sm text-slate-300 hover:border-rose-500/60 hover:text-rose-200"
+              className="rounded-xl border border-[var(--hairline)] bg-[var(--surface)] px-3.5 py-2 text-[13px] font-medium text-[var(--ink-2)] hover:text-[var(--critical)]"
             >
               {source === 'sample' ? 'Clear sample' : 'Clear all data'}
             </button>
@@ -116,16 +125,16 @@ export default function App() {
       ) : null}
 
       {loading ? (
-        <p className="py-16 text-center text-sm text-slate-500">Loading…</p>
+        <p className="py-20 text-center text-[14px] text-[var(--ink-muted)]">Loading…</p>
       ) : summary.total === 0 ? (
         <EmptyState sampleCount={SEED_EVENT_COUNT} onLoadSample={() => void refresh('sample')} />
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-7">
           {summary.recommendation ? <Recommendation concept={summary.recommendation} /> : null}
 
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
             <Stat value={summary.total} label="Incidents" />
-            <Stat value={summary.dangerous} label="Dangerous" />
+            <Stat value={summary.dangerous} label="Dangerous" tone="critical" />
             <Stat value={summary.concepts.length} label="Concepts hit" />
             <Stat value={`${leftRate}%`} label="Left the page" />
           </div>
@@ -153,13 +162,13 @@ export default function App() {
           </div>
 
           {summary.olderCount > 0 ? (
-            <p className="text-xs text-slate-600">
+            <p className="text-[12px] text-[var(--ink-muted)]">
               {summary.olderCount} older {summary.olderCount === 1 ? 'event is' : 'events are'} in
               the log but outside this 7-day window.
             </p>
           ) : null}
 
-          <footer className="border-t border-slate-800 pt-5 text-xs text-slate-600">
+          <footer className="border-t border-[var(--gridline)] pt-6 text-[12px] leading-relaxed text-[var(--ink-muted)]">
             Everything here is stored locally in this browser, host names only — never full URLs.
             Nothing is sent to a server.
           </footer>

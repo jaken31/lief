@@ -2,8 +2,88 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Set on :root as well as the body class so there is no white flash before React mounts. */
+/*
+ * Palette roles, not raw hex, so the whole page can be re-themed from one block.
+ * Values are the validated reference palette from the dataviz skill — the
+ * sequential ramp and the status four are taken as given rather than invented,
+ * because colourblind separation is computed, not eyeballed.
+ *
+ * Light by deliberate choice. The previous slate-950 page read as a generic
+ * developer dashboard; this reads as a document you are meant to sit and read.
+ */
 :root {
-  color-scheme: dark;
-  background-color: #020617; /* slate-950 */
+  color-scheme: light;
+
+  /* Surfaces */
+  --plane: #f9f9f7;
+  --surface: #fcfcfb;
+
+  /* Ink */
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --ink-muted: #898781;
+
+  /* Chrome */
+  --hairline: rgb(11 11 11 / 10%);
+  --gridline: #e1e0d9;
+  --baseline: #c3c2b7;
+
+  /* Status — reserved. Never reused as a series colour. */
+  --critical: #d03b3b;
+  --warning: #fab219;
+  --good: #0ca30c;
+
+  /* Sequential: one hue for magnitude. A second concurrent context takes orange. */
+  --seq-blue: #2a78d6;
+  --seq-blue-soft: #cde2fb;
+  --seq-orange: #eb6834;
+  --seq-orange-soft: #fbdcd0;
+
+  background-color: var(--plane);
+}
+
+body {
+  background-color: var(--plane);
+  color: var(--ink);
+  -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * The tooltip is a sibling revealed on hover of its mark. CSS-only: a dashboard
+ * that needs JavaScript to explain its own bars is one more thing to break on
+ * stage, and the hover layer is not optional — a bar chart with no per-mark
+ * readout makes the reader estimate values off a gridline.
+ */
+.mark {
+  position: relative;
+}
+
+.mark > .tip {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  z-index: 20;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  border-radius: 7px;
+  background: var(--ink);
+  padding: 6px 9px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: #fff;
+  box-shadow: 0 6px 18px rgb(0 0 0 / 18%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 90ms ease;
+}
+
+.mark:hover > .tip,
+.mark:focus-visible > .tip {
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mark > .tip {
+    transition: none;
+  }
 }

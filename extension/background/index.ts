@@ -332,6 +332,24 @@ chrome.downloads.onCreated.addListener(async (item) => {
 // Housekeeping
 // ---------------------------------------------------------------------------
 
+/**
+ * The toolbar icon opens the dashboard.
+ *
+ * The manifest declares an `action` with no `default_popup`, which means that
+ * without this listener clicking the icon does nothing and the review page is
+ * reachable only by typing a chrome-extension:// URL by hand. PRD §7 puts the
+ * one-click wipe on that page, so "reachable in one click" has to start here.
+ */
+chrome.action.onClicked.addListener(() => {
+  void (async () => {
+    try {
+      await chrome.tabs.create({ url: chrome.runtime.getURL('pages/review/index.html') });
+    } catch (e) {
+      console.warn('[lief] could not open the dashboard', e);
+    }
+  })();
+});
+
 chrome.tabs.onRemoved.addListener((tabId) => {
   void forgetTab(tabId).catch(() => undefined);
 });

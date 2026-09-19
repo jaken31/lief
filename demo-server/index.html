@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lief — detection test hub</title>
+<style>
+  /* Same validated palette as the dashboard, so the two surfaces read as one product. */
+  :root {
+    --ink:#0b0b0b; --ink-2:#52514e; --muted:#898781;
+    --line:#e1e0d9; --hairline:rgb(11 11 11 / 10%);
+    --plane:#f9f9f7; --surface:#fcfcfb;
+    --danger:#d03b3b; --danger-bg:rgb(208 59 59 / 6%);
+    --warn:#fab219;  --warn-ink:#8a5a00; --warn-bg:rgb(250 178 25 / 12%);
+    --safe:#0ca30c;  --safe-ink:#046104; --safe-bg:rgb(12 163 12 / 8%);
+    --link:#2a78d6;
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; background:var(--plane); color:var(--ink);
+         font:16px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+         -webkit-font-smoothing:antialiased; }
+  .wrap { max-width:820px; margin:0 auto; padding:64px 24px 112px; }
+
+  header { border-bottom:1px solid var(--line); padding-bottom:28px; margin-bottom:8px; }
+  .eyebrow { font-size:11px; font-weight:600; letter-spacing:0.14em;
+             text-transform:uppercase; color:var(--muted); margin:0 0 10px; }
+  h1 { font-size:34px; margin:0 0 10px; letter-spacing:-0.03em; line-height:1.1; }
+  header p { margin:0; color:var(--ink-2); font-size:15px; max-width:52ch; }
+
+  h2 { font-size:12px; text-transform:uppercase; letter-spacing:0.1em;
+       margin:52px 0 4px; color:var(--muted); font-weight:600; }
+  h2 + p.note { margin:0 0 18px; font-size:14px; color:var(--ink-2); max-width:62ch; }
+
+  /* Cards rather than a flat rule-separated list: each row is a discrete thing
+     you act on, and the hairline-list version ran them together. */
+  ul { list-style:none; padding:0; margin:0; display:grid; gap:10px; }
+  li { display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;
+       background:var(--surface); border:1px solid var(--hairline);
+       border-radius:12px; padding:16px 18px; }
+
+  /* The links are deliberately underlined and monospace: the whole point of the
+     exercise is reading a URL carefully before you click it. */
+  a.target { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:13.5px;
+             color:var(--link); text-decoration:underline; text-underline-offset:3px;
+             text-decoration-thickness:1px; flex:1 1 300px; word-break:break-all;
+             border-radius:3px; }
+  a.target:hover { text-decoration-thickness:2px; }
+  a.target:visited { color:#6b4fa8; }
+
+  /* Status badges carry a glyph as well as colour — amber is sub-3:1 on this
+     surface, so hue alone cannot be the channel. */
+  .badge { font-size:11px; font-weight:700; letter-spacing:0.04em; text-transform:uppercase;
+           padding:4px 9px; border-radius:999px; white-space:nowrap;
+           display:inline-flex; align-items:center; gap:5px; border:1px solid transparent; }
+  .badge::before { font-size:9px; }
+  .b-danger { background:var(--danger-bg); color:var(--danger);
+              border-color:rgb(208 59 59 / 30%); }
+  .b-danger::before { content:"●"; }
+  .b-warn   { background:var(--warn-bg); color:var(--warn-ink);
+              border-color:rgb(250 178 25 / 50%); }
+  .b-warn::before { content:"▲"; color:var(--warn); }
+  .b-safe   { background:var(--safe-bg); color:var(--safe-ink);
+              border-color:rgb(12 163 12 / 30%); }
+  .b-safe::before { content:"○"; }
+
+  .why { flex:1 1 100%; font-size:13px; color:var(--ink-2); margin:6px 0 0;
+         line-height:1.55; max-width:70ch; }
+  .why strong { color:var(--ink); font-weight:600; }
+
+  .callout { background:var(--surface); border:1px solid var(--hairline);
+             border-left:3px solid var(--link); padding:16px 18px; margin:32px 0;
+             font-size:14px; border-radius:0 12px 12px 0; color:var(--ink-2);
+             line-height:1.6; }
+  .callout strong { display:block; margin-bottom:5px; color:var(--ink); }
+
+  code { font-family:ui-monospace, SFMono-Regular, Menlo, monospace; font-size:13px;
+         background:#f1f1f3; padding:2px 5px; border-radius:4px; }
+
+  .idrow { display:flex; gap:8px; margin:14px 0 6px; flex-wrap:wrap; }
+  .idrow input { flex:1 1 320px; padding:10px 12px; border:1px solid var(--line);
+                 border-radius:10px; background:var(--surface); color:var(--ink);
+                 font-family:ui-monospace, Menlo, monospace; font-size:13px; }
+  .idrow input:focus { outline:2px solid var(--link); outline-offset:1px; border-color:transparent; }
+  .idrow button { padding:10px 18px; border:0; border-radius:10px; background:var(--ink);
+                  color:#fff; font-size:14px; font-weight:600; cursor:pointer; }
+  .idrow button:hover { background:#2a2a28; }
+  .disabled { opacity:.4; pointer-events:none; }
+  footer { margin-top:64px; padding-top:22px; border-top:1px solid var(--line);
+           font-size:13px; color:var(--muted); line-height:1.6; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="eyebrow">Lief</p>
+    <h1>Detection test hub</h1>
+    <p>Served from <code>localhost</code>, which is allowlisted — so this page never fires a banner,
+       and is itself a negative control.</p>
+  </header>
+
+  <div class="callout">
+    <strong>Before you start</strong>
+    Open <code>chrome://extensions</code> → Lief → <em>service worker</em>. That console is the only
+    place detection failures show up. Every link below opens in a new tab so this hub stays put.
+  </div>
+
+  <h2>Should fire</h2>
+  <p class="note">The banner appears at the top of the page. Read the detail sentence — that string is the product.</p>
+  <ul>
+    <li>
+      <a class="target" href="http://paypa1.com:8080/login.html" target="_blank" rel="noopener">http://paypa1.com:8080/login.html</a>
+      <span class="badge b-danger">dangerous</span>
+      <p class="why"><strong>H1 · lookalike-domains.</strong> The hero case. Detail must name
+      <em>the digit 1 where the letter l belongs</em> — not "suspicious domain". This page also
+      carries a password field, so H3 fires behind it.</p>
+    </li>
+    <li>
+      <a class="target" href="http://arnazon.com:8080/login.html" target="_blank" rel="noopener">http://arnazon.com:8080/login.html</a>
+      <span class="badge b-danger">dangerous</span>
+      <p class="why"><strong>H1 · lookalike-domains.</strong> A different fold rule: <em>r</em> and
+      <em>n</em> side by side reading as a single <em>m</em>. Proves the explanation is generated, not hardcoded.</p>
+    </li>
+    <li>
+      <a class="target" href="http://login.google.com.secure-verify.ru:8080/login.html" target="_blank" rel="noopener">http://login.google.com.secure-verify.ru:8080/login.html</a>
+      <span class="badge b-danger">dangerous</span>
+      <p class="why"><strong>Link set · url-anatomy.</strong> The real domain is
+      <code>secure-verify.ru</code>; everything left of it is decoration. The most teachable URL here.</p>
+    </li>
+    <li>
+      <a class="target" href="http://secure-paypa1-verify.com:8080/login.html" target="_blank" rel="noopener">http://secure-paypa1-verify.com:8080/login.html</a>
+      <span class="badge b-danger">dangerous</span>
+      <p class="why"><strong>Link set · phishing-pressure.</strong> H1 does not catch this one —
+      it comes from the bundled list, which is how you know layer 2 is wired in.</p>
+    </li>
+    <li>
+      <a class="target" href="http://127.0.0.2:8080/login.html" target="_blank" rel="noopener">http://127.0.0.2:8080/login.html</a>
+      <span class="badge b-warn">suspicious</span>
+      <p class="why"><strong>H4 · url-anatomy.</strong> A bare IP with no name to check.
+      Needs the server started with <code>--bind 0.0.0.0</code>.</p>
+    </li>
+  </ul>
+
+  <h2>Must stay silent</h2>
+  <p class="note">The half that decides whether anyone trusts the product. A banner on any of these is a P0 bug.</p>
+  <ul>
+    <li>
+      <a class="target" href="https://www.paypal.com" target="_blank" rel="noopener">https://www.paypal.com</a>
+      <span class="badge b-safe">silent</span>
+      <p class="why">The genuine brand. The case most likely to regress when H1 is edited.</p>
+    </li>
+    <li>
+      <a class="target" href="https://mail.google.com" target="_blank" rel="noopener">https://mail.google.com</a>
+      <span class="badge b-safe">silent</span>
+      <p class="why">Subdomain of an allowlisted registrable domain.</p>
+    </li>
+    <li>
+      <a class="target" href="https://www.amazon.com" target="_blank" rel="noopener">https://www.amazon.com</a>
+      <span class="badge b-safe">silent</span>
+      <p class="why">Confirms <code>arnazon</code> did not poison the real one.</p>
+    </li>
+    <li>
+      <a class="target" href="https://www.bbc.co.uk" target="_blank" rel="noopener">https://www.bbc.co.uk</a>
+      <span class="badge b-safe">silent</span>
+      <p class="why">Multi-part TLD. Naive last-two-labels parsing would compare <code>co</code> against the brand list.</p>
+    </li>
+    <li>
+      <a class="target" href="https://github.com" target="_blank" rel="noopener">https://github.com</a>
+      <span class="badge b-safe">silent</span>
+      <p class="why">Ordinary site with no brand signal.</p>
+    </li>
+    <li>
+      <a class="target" href="https://en.wikipedia.org/wiki/Phishing" target="_blank" rel="noopener">https://en.wikipedia.org/wiki/Phishing</a>
+      <span class="badge b-safe">silent</span>
+      <p class="why">Threat vocabulary in the path. You match on host only, so this must not matter.</p>
+    </li>
+  </ul>
+
+  <h2>Downloads</h2>
+  <p class="note">Run <code>touch demo-server/invoice.pdf.exe</code> first, or this 404s.</p>
+  <ul>
+    <li>
+      <a class="target" href="http://paypa1.com:8080/invoice.pdf.exe" target="_blank" rel="noopener">http://paypa1.com:8080/invoice.pdf.exe</a>
+      <span class="badge b-danger">dangerous</span>
+      <p class="why"><strong>H5 · downloads-and-permissions.</strong> Double extension — it looks
+      like a <code>.pdf</code>, but <code>.exe</code> is the one your computer obeys.</p>
+    </li>
+  </ul>
+
+  <h2>Extension pages</h2>
+  <p class="note">Paste your extension ID from <code>chrome://extensions</code> to activate these.</p>
+  <div class="idrow">
+    <input id="extid" placeholder="e.g. abcdefghijklmnopabcdefghijklmnop" spellcheck="false">
+    <button id="save">Save</button>
+  </div>
+  <ul>
+    <li>
+      <a class="target disabled" id="dash-seed" href="#" target="_blank" rel="noopener">pages/review/index.html?seed=1</a>
+      <span class="badge b-safe">dashboard</span>
+      <p class="why">Seeded fixture — a week of events, weighted so the recommendation has an obvious answer.</p>
+    </li>
+    <li>
+      <a class="target disabled" id="dash-live" href="#" target="_blank" rel="noopener">pages/review/index.html</a>
+      <span class="badge b-safe">dashboard</span>
+      <p class="why">Your real events from the testing above. The better check — it proves <code>logEvent</code> is writing.</p>
+    </li>
+    <li>
+      <a class="target disabled" id="course" href="#" target="_blank" rel="noopener">pages/course/index.html#lookalike-domains</a>
+      <span class="badge b-safe">course</span>
+      <p class="why">Where the banner's <em>Show me why</em> should land. If the hash is ignored, the deep link is broken.</p>
+    </li>
+  </ul>
+
+  <div class="callout">
+    <strong>Two bugs unit tests cannot catch</strong>
+    Reload a flagged page five times — the banner must appear every time, or the verdict replay
+    path is broken. Then terminate the service worker on <code>chrome://extensions</code> and
+    navigate again — detection must survive, which proves state really lives in
+    <code>storage.session</code>.
+  </div>
+
+  <footer>
+    Fixture pages only. Every host above resolves to <code>127.0.0.1</code> via <code>/etc/hosts</code>.
+    Remove those entries when you are done.
+  </footer>
+
+</div>
+
+<script>
+  const KEY = 'lief-ext-id';
+  const input = document.getElementById('extid');
+  const links = {
+    'dash-seed': 'pages/review/index.html?seed=1',
+    'dash-live': 'pages/review/index.html',
+    'course': 'pages/course/index.html#lookalike-domains',
+  };
+
+  function apply(id) {
+    const clean = (id || '').trim();
+    for (const [elId, path] of Object.entries(links)) {
+      const a = document.getElementById(elId);
+      if (clean) {
+        a.href = `chrome-extension://${clean}/${path}`;
+        a.classList.remove('disabled');
+      } else {
+        a.href = '#';
+        a.classList.add('disabled');
+      }
+    }
+  }
+
+  input.value = localStorage.getItem(KEY) || '';
+  apply(input.value);
+
+  document.getElementById('save').addEventListener('click', () => {
+    localStorage.setItem(KEY, input.value.trim());
+    apply(input.value);
+  });
+</script>
+</body>
+</html>

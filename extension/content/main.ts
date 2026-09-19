@@ -15,6 +15,7 @@ import { lessonUrl as courseUrl } from '../lib/lessons';
 import type { LiefMessage, Result } from '../lib/types';
 import type { BannerAction, BannerHandle } from './banner';
 import { mountBanner } from './banner';
+import { markLinks, resetLinkMarksForTests } from './linkmarks';
 import { toRiskEvent } from './verdict';
 
 /** Login forms on SPAs mount well after document_idle. Watch briefly, then stop. */
@@ -174,6 +175,10 @@ export function start(): void {
   });
 
   watchPasswordFields();
+
+  // Teach one step earlier than the banner: mark risky links while they are
+  // still just links, before the user has committed to a navigation.
+  markLinks();
 }
 
 /**
@@ -184,6 +189,7 @@ export function start(): void {
 export function resetForTests(): void {
   for (const dispose of teardown) dispose();
   teardown = [];
+  resetLinkMarksForTests();
   banner?.remove();
   banner = null;
   dismissed = false;
