@@ -6,7 +6,7 @@
       "title": "Anatomy of a URL",
       "subtitle": "Where the real domain actually lives",
       "minutes": 3,
-      "detector": "Host parsing — the domain Lief names in every warning",
+      "detector": "Raw-IP hosts, plus the domain Lief names in every warning",
       "body": [
         "Read a URL right to left, not left to right. In https://accounts.google.com.verify-login.co/signin the real domain is verify-login.co. Everything to the left of it — including the reassuring accounts.google.com — is a subdomain that the owner of verify-login.co invented. They can set it to any text they like, and they chose that text to fool you.",
         "A URL has four parts in fixed order: the scheme (https://), the host (accounts.google.com.verify-login.co), the path (/signin), and the query (?next=home). Only the host decides which computer you are actually talking to. The path and the query are just text the site made up about itself.",
