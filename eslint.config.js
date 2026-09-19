@@ -10,10 +10,19 @@ export default tseslint.config(
       globals: { chrome: 'readonly', window: 'readonly', document: 'readonly', console: 'readonly' },
     },
     rules: {
-      // The banner must never take page-controlled strings as markup. See TRD §12.
+      // The banner renders page-controlled strings. Markup sinks are banned outright,
+      // not reviewed case by case. TRD §12.
       'no-restricted-properties': [
         'error',
-        { object: 'element', property: 'innerHTML', message: 'Use textContent — page strings are hostile.' },
+        { property: 'innerHTML', message: 'Use textContent — page-derived strings are hostile.' },
+        { property: 'outerHTML', message: 'Use textContent — page-derived strings are hostile.' },
+      ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "CallExpression[callee.property.name='insertAdjacentHTML']",
+          message: 'Use textContent — page-derived strings are hostile.',
+        },
       ],
     },
   },
