@@ -498,9 +498,7 @@ describe('the warning itself, in a real browser', () => {
     expect(await bannerAppears()).toBe(true);
 
     expect(await innerText('.found')).toBe('paypa1.com — digit 1 where the letter l belongs');
-    expect(await innerText('.concept')).toBe(
-      'This is Lesson 2 — Homoglyphs, typosquats, punycode',
-    );
+    expect(await innerText('.concept')).toBe('This is Lesson 2 — Lookalike domains');
     expect(await innerText('.chip')).toBe('Dangerous');
   });
 

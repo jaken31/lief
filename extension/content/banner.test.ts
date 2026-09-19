@@ -1,8 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { BannerAction, BannerHandle } from './banner';
+import { LESSON_IDS, lessonTitle } from '../lib/lessons';
 import { BANNER_HOST_SELECTOR, mountBanner, neutraliseDeceptiveText } from './banner';
-import type { RiskEvent } from './contracts';
+import type { RiskEvent } from '../lib/events';
 
 const LOOKALIKE: RiskEvent = {
   id: 'evt-1',
@@ -137,14 +138,19 @@ describe('mountBanner', () => {
     const { handle, root } = mount();
     mounted = handle;
 
-    expect(text(root, '.concept')).toBe('This is Lesson 2 — Homoglyphs, typosquats, punycode');
+    expect(text(root, '.concept')).toBe('This is Lesson 2 — Lookalike domains');
   });
 
-  it('trims the em-dash gloss off registry titles so the line reads once', () => {
+  it('takes the name and number straight from the shared registry', () => {
+    // The seam. If the banner and the course ever disagree on what Lesson 2 is
+    // called, the demo's whole argument — the vocabulary reappearing unprompted —
+    // stops working.
     const { handle, root } = mount({ ...LOOKALIKE, lessonId: 'url-anatomy' });
     mounted = handle;
 
-    expect(text(root, '.concept')).toBe('This is Lesson 1 — Anatomy of a URL');
+    expect(text(root, '.concept')).toBe(
+      `This is Lesson ${LESSON_IDS.indexOf('url-anatomy') + 1} — ${lessonTitle('url-anatomy')}`,
+    );
   });
 
   it('deep-links "Show me why" to the lesson', () => {

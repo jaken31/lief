@@ -13,8 +13,9 @@
  * PRD, not a UI preference.
  */
 import bannerCss from './banner.css?inline';
-import type { LessonId, RiskEvent } from './contracts';
-import { lessonNumber, lessonTitle } from './contracts';
+import type { RiskEvent } from '../lib/events';
+import type { LessonId } from '../lib/lessons';
+import { LESSON_IDS, lessonTitle } from '../lib/lessons';
 
 /**
  * A plain <div>, not a custom element.
@@ -114,6 +115,9 @@ const VERDICT_LABEL: Record<RiskEvent['verdict'], string> = {
 };
 
 export type BannerAction = NonNullable<RiskEvent['action']>;
+
+/** 1-based, so the banner can say "Lesson 2" the way the demo script does. */
+const lessonNumber = (id: LessonId): number => LESSON_IDS.indexOf(id) + 1;
 
 export type BannerOptions = {
   /** Defaults to document.documentElement — it outlives a body swap. */

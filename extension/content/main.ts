@@ -9,10 +9,13 @@
  * observations and renders what the service worker tells it. It never decides a
  * verdict, and it validates everything it is handed.
  */
+import type { RiskEvent } from '../lib/events';
+import type { LessonId } from '../lib/lessons';
+import { lessonUrl as courseUrl } from '../lib/lessons';
+import type { LiefMessage, Result } from '../lib/types';
 import type { BannerAction, BannerHandle } from './banner';
 import { mountBanner } from './banner';
-import type { LessonId, LiefMessage, Result, RiskEvent } from './contracts';
-import { toRiskEvent } from './contracts';
+import { toRiskEvent } from './verdict';
 
 /** Login forms on SPAs mount well after document_idle. Watch briefly, then stop. */
 const PASSWORD_WATCH_MS = 10_000;
@@ -52,9 +55,10 @@ async function send(message: LiefMessage): Promise<Result<unknown>> {
 function lessonUrl(lessonId: LessonId): string | null {
   if (!hasRuntime()) return null;
   try {
-    return chrome.runtime.getURL(`pages/course/index.html#${lessonId}`);
+    return courseUrl(lessonId);
   } catch (cause) {
-    debug('getURL failed', cause);
+    // Throws once the extension context is invalidated by a reload.
+    debug('lessonUrl failed', cause);
     return null;
   }
 }
@@ -105,7 +109,15 @@ function watchPasswordFields(): void {
     const hasPassword = document.querySelector('input[type="password"]') !== null;
     if (hasPassword === reported) return;
     reported = hasPassword;
-    void send({ type: 'LIEF_PASSWORD_FIELD', hasPassword });
+
+    // H3 is decided in the background, and on a hit it answers with the event
+    // rather than pushing it. Ignore the reply and the credential-form warning
+    // never renders.
+    void send({ type: 'LIEF_PASSWORD_FIELD', hasPassword }).then((result) => {
+      if (!result.ok) return;
+      const event = toRiskEvent(result.value);
+      if (event !== null) render(event);
+    });
   };
 
   report();

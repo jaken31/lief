@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { BANNER_HOST_SELECTOR } from './banner';
-import type { RiskEvent } from './contracts';
+import type { RiskEvent } from '../lib/events';
 
 const LOOKALIKE: RiskEvent = {
   id: 'evt-1',
@@ -137,9 +137,16 @@ describe('the load-order race', () => {
     expect(banners()).toBe(1);
   });
 
-  it('accepts a bare RiskEvent replay, since Track A has not pinned the reply shape', async () => {
+  // The background answers LIEF_REQUEST_VERDICT with a LiefResponse — { event } —
+  // and pushes with a LIEF_VERDICT envelope. Reject either and the banner fails on
+  // exactly the pages whose verdict was ready first.
+  it.each([
+    ['LiefResponse, as the background actually replies', { event: LOOKALIKE }],
+    ['a LIEF_VERDICT envelope', { type: 'LIEF_VERDICT', event: LOOKALIKE }],
+    ['a bare RiskEvent', LOOKALIKE],
+  ])('renders a replay shaped as %s', async (_label, replay) => {
     const harness = installChrome();
-    harness.setReplay(LOOKALIKE);
+    harness.setReplay(replay);
     const { start } = await load();
 
     start();
@@ -147,6 +154,19 @@ describe('the load-order race', () => {
     await vi.waitFor(() => {
       expect(banners()).toBe(1);
     });
+  });
+
+  it('ignores an empty replay', async () => {
+    const harness = installChrome();
+    harness.setReplay({ event: null });
+    const { start } = await load();
+
+    start();
+    await vi.waitFor(() => {
+      expect(harness.sentTypes()).toContain('LIEF_REQUEST_VERDICT');
+    });
+
+    expect(banners()).toBe(0);
   });
 });
 
@@ -253,6 +273,23 @@ describe('actions', () => {
 });
 
 describe('password-field observation', () => {
+  it('renders the warning the background answers H3 with', async () => {
+    const harness = installChrome();
+    harness.sendMessage.mockImplementation(async (message: Sent) =>
+      message.type === 'LIEF_PASSWORD_FIELD' ? { event: LOOKALIKE } : undefined,
+    );
+    const input = document.createElement('input');
+    input.type = 'password';
+    document.body.append(input);
+    const { start } = await load();
+
+    start();
+
+    await vi.waitFor(() => {
+      expect(banners()).toBe(1);
+    });
+  });
+
   it('reports a credential form so the background can decide H3', async () => {
     const harness = installChrome();
     const input = document.createElement('input');
