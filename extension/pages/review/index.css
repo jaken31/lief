@@ -1,0 +1,9 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Set on :root as well as the body class so there is no white flash before React mounts. */
+:root {
+  color-scheme: dark;
+  background-color: #020617; /* slate-950 */
+}
