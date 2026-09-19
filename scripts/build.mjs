@@ -12,8 +12,10 @@
  * with the pages. This is the reason @crxjs/vite-plugin exists; we do it by hand
  * instead, per TRD §11's escape hatch.
  *
- * Every pass is skipped with a warning when its source is absent, so the build
- * stays green while Tracks A, C and D land their files independently.
+ * Passes are independent and isolated. A missing source file is skipped with a
+ * warning; a pass that throws is reported and the rest still run. One track's
+ * half-finished work must never stop another track from loading dist/ into Chrome.
+ * The build still exits non-zero, so `npm run verify` stays honest.
  */
 import { existsSync } from 'node:fs';
 import { copyFile, mkdir, rm } from 'node:fs/promises';
@@ -28,6 +30,20 @@ const rel = (p) => relative(ROOT, p);
 const log = (msg) => console.log(`[lief:build] ${msg}`);
 const skip = (msg) => console.warn(`[lief:build] skip · ${msg}`);
 const warn = (msg) => console.warn(`[lief:build] WARN · ${msg}`);
+
+const failures = [];
+
+/** Runs one pass in isolation so its failure cannot cascade into the others. */
+async function pass(label, fn) {
+  try {
+    await fn();
+  } catch (cause) {
+    failures.push(label);
+    const message = cause instanceof Error ? cause.message : String(cause);
+    console.error(`[lief:build] FAIL · ${label}`);
+    console.error(message.split('\n').slice(0, 20).join('\n'));
+  }
+}
 
 async function buildPages() {
   // Mirrors the filter in vite.config.ts; that copy exists for `vite dev`.
@@ -93,22 +109,34 @@ async function main() {
   await rm(DIST, { recursive: true, force: true });
   await mkdir(DIST, { recursive: true });
 
-  await buildPages();
-  await buildScript({
-    label: 'content',
-    entry: resolve(EXTENSION, 'content/index.ts'),
-    format: 'iife',
-    outFile: 'content/index.js',
-    owner: 'Track B',
-  });
-  await buildScript({
-    label: 'background',
-    entry: resolve(EXTENSION, 'background/index.ts'),
-    format: 'es',
-    outFile: 'background/index.js',
-    owner: 'Track A',
-  });
-  await copyManifest();
+  await pass('pages', buildPages);
+  await pass('content', () =>
+    buildScript({
+      label: 'content',
+      entry: resolve(EXTENSION, 'content/index.ts'),
+      format: 'iife',
+      outFile: 'content/index.js',
+      owner: 'Track B',
+    }),
+  );
+  await pass('background', () =>
+    buildScript({
+      label: 'background',
+      entry: resolve(EXTENSION, 'background/index.ts'),
+      format: 'es',
+      outFile: 'background/index.js',
+      owner: 'Track A',
+    }),
+  );
+  await pass('manifest', copyManifest);
+
+  if (failures.length > 0) {
+    console.error(
+      `[lief:build] done WITH FAILURES · ${failures.join(', ')} — dist/ holds the passes that succeeded`,
+    );
+    process.exitCode = 1;
+    return;
+  }
 
   log('done → dist/');
 }
