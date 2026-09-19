@@ -2,6 +2,7 @@
 
 **Timebox:** 2 hours · **Team:** 4 engineers
 **Companions:** [PRD.md](./PRD.md) (what and why) · [TRD.md](./TRD.md) (how)
+**Per-engineer brief:** [TRACK-E1.md](./TRACK-E1.md) (E1 — detection engine, expanded)
 
 The failure mode for a build this size is not writing code too slowly. It is four people coding
 against interfaces they each imagined, merging at T+1:40, and shipping nothing. This plan trades
@@ -88,6 +89,10 @@ bundler rabbit hole at T+0:30 is fatal and judges never inspect build pipelines.
 
 ### E3 — Safe Browsing key
 
+**Downgraded to optional.** E1's detection now uses a bundled static link set with no API
+dependency (see [TRACK-E1.md](./TRACK-E1.md) §4), so nothing is blocked on this key. Do it only
+if you have slack; otherwise start Track C at T+0:00 and hand E1 the key later or never.
+
 Create a Google Cloud project, enable the Safe Browsing API, mint a key. **This is ~10 minutes of
 pure clicking with no code**, which is exactly why it runs now instead of being discovered as a
 blocker at T+0:40.
@@ -106,7 +111,11 @@ theory. Titles and IDs are fixed in PRD §4.1.
 ## Tracks (T+0:10 onward)
 
 ### E1 · Track A — Detection engine
-**Owns:** `manifest.json`, `background/**`, `lib/detect.ts` · **Spec:** TRD §3
+**Owns:** `manifest.json`, `background/**`, `lib/detect.ts`, `lib/linkset.ts` · **Spec:** TRD §3
+**Full brief:** [TRACK-E1.md](./TRACK-E1.md) — read that, not this section. It supersedes the
+Phase 2 line below: Safe Browsing is replaced by a bundled static link set
+(`lib/linkset.ts`), no API key and no network. It also documents a bug in the TRD's H1 spec
+that stops `paypa1.com` from ever firing.
 
 Phase 1 (→T+0:50): service worker, `webNavigation.onCommitted` on `frameId === 0`, all five
 heuristics as pure functions, `logEvent` + `sendMessage` on hit.
