@@ -39,8 +39,8 @@
     {
       "id": "phishing-pressure",
       "number": 3,
-      "title": "Urgency, authority, and the ask",
-      "subtitle": "Every phishing message has the same three bones",
+      "title": "Phishing pressure",
+      "subtitle": "Urgency, authority, and the ask — always credentials or a payment",
       "minutes": 3,
       "detector": "Password field on an origin you have never used before",
       "body": [
@@ -57,8 +57,8 @@
     {
       "id": "https-is-not-safe",
       "number": 4,
-      "title": "What the padlock actually proves",
-      "subtitle": "Transport, not trustworthiness",
+      "title": "HTTPS is not safety",
+      "subtitle": "What the padlock actually proves: transport, not trustworthiness",
       "minutes": 3,
       "detector": "Shown alongside any warning on an HTTPS page",
       "body": [
