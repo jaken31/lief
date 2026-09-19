@@ -12,6 +12,9 @@
  * with the pages. This is the reason @crxjs/vite-plugin exists; we do it by hand
  * instead, per TRD §11's escape hatch.
  *
+ * Pass a subset of pass names to run only those, e.g. `node scripts/build.mjs content`.
+ * With no arguments every pass runs and dist/ is cleaned first.
+ *
  * Passes are independent and isolated. A missing source file is skipped with a
  * warning; a pass that throws is reported and the rest still run. One track's
  * half-finished work must never stop another track from loading dist/ into Chrome.
@@ -31,10 +34,14 @@ const log = (msg) => console.log(`[lief:build] ${msg}`);
 const skip = (msg) => console.warn(`[lief:build] skip · ${msg}`);
 const warn = (msg) => console.warn(`[lief:build] WARN · ${msg}`);
 
+const requested = new Set(process.argv.slice(2));
+const wanted = (name) => requested.size === 0 || requested.has(name);
+
 const failures = [];
 
 /** Runs one pass in isolation so its failure cannot cascade into the others. */
 async function pass(label, fn) {
+  if (!wanted(label)) return;
   try {
     await fn();
   } catch (cause) {
@@ -106,7 +113,17 @@ async function copyManifest() {
 }
 
 async function main() {
-  await rm(DIST, { recursive: true, force: true });
+  const unknown = [...requested].filter(
+    (name) => !['pages', 'content', 'background', 'manifest'].includes(name),
+  );
+  if (unknown.length > 0) {
+    console.error(`[lief:build] unknown pass: ${unknown.join(', ')}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  // A partial build must not delete another pass's output.
+  if (requested.size === 0) await rm(DIST, { recursive: true, force: true });
   await mkdir(DIST, { recursive: true });
 
   await pass('pages', buildPages);
