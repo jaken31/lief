@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import type { BannerAction, BannerHandle } from './banner';
-import { BANNER_TAG, mountBanner } from './banner';
+import { BANNER_HOST_SELECTOR, mountBanner, neutraliseDeceptiveText } from './banner';
 import type { RiskEvent } from './contracts';
 
 const LOOKALIKE: RiskEvent = {
@@ -36,8 +36,30 @@ let mounted: BannerHandle | null = null;
 afterEach(() => {
   mounted?.remove();
   mounted = null;
-  document.querySelectorAll(BANNER_TAG).forEach((node) => {
+  document.querySelectorAll(BANNER_HOST_SELECTOR).forEach((node) => {
     node.remove();
+  });
+});
+
+describe('neutraliseDeceptiveText', () => {
+  it.each([
+    ['bidi override', 'paypal.com\u202Emoc.esuba', 'paypal.com\uFFFDmoc.esuba'],
+    ['isolates', 'a\u2066b\u2069c', 'a\uFFFDb\uFFFDc'],
+    ['zero-width space', 'goo\u200Bgle.com', 'goo\uFFFDgle.com'],
+    ['soft hyphen', 'pay\u00ADpal.com', 'pay\uFFFDpal.com'],
+    ['byte order mark', '\uFEFFpaypal.com', '\uFFFDpaypal.com'],
+    ['control character', 'pay\u0007pal.com', 'pay\uFFFDpal.com'],
+  ])('replaces %s with a visible marker', (_label, input, expected) => {
+    expect(neutraliseDeceptiveText(input)).toBe(expected);
+  });
+
+  it.each([
+    'paypa1.com — digit 1 where the letter l belongs',
+    'münchen.de',
+    'xn--80ak6aa92e.com',
+    'line one\nline two\ttabbed',
+  ])('leaves legitimate text untouched: %j', (input) => {
+    expect(neutraliseDeceptiveText(input)).toBe(input);
   });
 });
 
@@ -46,10 +68,22 @@ describe('mountBanner', () => {
     const { handle } = mount();
     mounted = handle;
 
-    expect(handle.host.tagName.toLowerCase()).toBe(BANNER_TAG);
+    expect(handle.host.tagName.toLowerCase()).toBe('div');
+    expect(handle.host.matches(BANNER_HOST_SELECTOR)).toBe(true);
     expect(handle.host.parentElement).toBe(document.documentElement);
     expect(handle.host.shadowRoot).toBe(handle.root);
     expect(handle.root.mode).toBe('open');
+  });
+
+  it('uses a div, which a page cannot upgrade into its own custom element', () => {
+    const { handle } = mount();
+    mounted = handle;
+
+    // A hyphenated tag is a custom element name. Define it first and the page's
+    // connectedCallback runs on our host and can remove the warning outright.
+    expect(handle.host.tagName.toLowerCase()).toBe('div');
+    expect(handle.host.tagName).not.toContain('-');
+    expect(handle.host.hasAttribute('is')).toBe(false);
   });
 
   it('pins its geometry with inline !important so page CSS cannot hide it', () => {
@@ -73,6 +107,11 @@ describe('mountBanner', () => {
     expect(handle.host.style.getPropertyValue('font-family')).toContain('ui-sans-serif');
     expect(handle.host.style.getPropertyPriority('font-size')).toBe('important');
     expect(handle.host.style.getPropertyPriority('line-height')).toBe('important');
+
+    // `all: initial` does not reset these two — the spec excludes them.
+    expect(handle.host.style.getPropertyValue('direction')).toBe('ltr');
+    expect(handle.host.style.getPropertyPriority('direction')).toBe('important');
+    expect(handle.host.style.getPropertyPriority('unicode-bidi')).toBe('important');
   });
 
   it('renders the three regions in the order the TRD fixes', () => {
@@ -197,7 +236,7 @@ describe('mountBanner', () => {
       });
 
       expect(handle.host).toBe(before);
-      expect(document.querySelectorAll(BANNER_TAG)).toHaveLength(1);
+      expect(document.querySelectorAll(BANNER_HOST_SELECTOR)).toHaveLength(1);
       expect(root.querySelector('.banner')?.getAttribute('data-verdict')).toBe('dangerous');
       expect(text(root, '.chip')).toBe('Dangerous');
       expect(text(root, '.found')).toBe(
@@ -228,10 +267,17 @@ describe('mountBanner', () => {
     expect(found?.textContent).toBe(hostile);
   });
 
+  it('neutralises a bidi override in the detail string', () => {
+    const { handle, root } = mount({ ...LOOKALIKE, detail: 'paypal.com\u202Emoc.esuba' });
+    mounted = handle;
+
+    expect(text(root, '.found')).toBe('paypal.com\uFFFDmoc.esuba');
+  });
+
   it('detaches on remove', () => {
     const { handle } = mount();
     handle.remove();
 
-    expect(document.querySelectorAll(BANNER_TAG)).toHaveLength(0);
+    expect(document.querySelectorAll(BANNER_HOST_SELECTOR)).toHaveLength(0);
   });
 });

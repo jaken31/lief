@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { BANNER_TAG } from './banner';
+import { BANNER_HOST_SELECTOR } from './banner';
 import type { RiskEvent } from './contracts';
 
 const LOOKALIKE: RiskEvent = {
@@ -55,11 +55,11 @@ function installChrome() {
 }
 
 function shadow(): ShadowRoot | null {
-  return document.querySelector(BANNER_TAG)?.shadowRoot ?? null;
+  return document.querySelector(BANNER_HOST_SELECTOR)?.shadowRoot ?? null;
 }
 
 function banners(): number {
-  return document.querySelectorAll(BANNER_TAG).length;
+  return document.querySelectorAll(BANNER_HOST_SELECTOR).length;
 }
 
 let loaded: typeof import('./main') | null = null;
@@ -79,7 +79,7 @@ afterEach(() => {
   loaded?.resetForTests();
   loaded = null;
   vi.unstubAllGlobals();
-  document.querySelectorAll(BANNER_TAG).forEach((node) => {
+  document.querySelectorAll(BANNER_HOST_SELECTOR).forEach((node) => {
     node.remove();
   });
   document.body.replaceChildren();
@@ -227,7 +227,7 @@ describe('actions', () => {
 
     start();
     harness.push({ type: 'LIEF_VERDICT', event: { ...LOOKALIKE, verdict: 'suspicious' } });
-    const host = document.querySelector(BANNER_TAG);
+    const host = document.querySelector(BANNER_HOST_SELECTOR);
 
     harness.push({
       type: 'LIEF_VERDICT',
@@ -235,7 +235,7 @@ describe('actions', () => {
     });
 
     expect(banners()).toBe(1);
-    expect(document.querySelector(BANNER_TAG)).toBe(host);
+    expect(document.querySelector(BANNER_HOST_SELECTOR)).toBe(host);
     expect(shadow()?.querySelector('.banner')?.getAttribute('data-verdict')).toBe('dangerous');
   });
 
