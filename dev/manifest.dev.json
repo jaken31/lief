@@ -1,0 +1,21 @@
+{
+  "manifest_version": 3,
+  "name": "Lief (dev — content script only)",
+  "version": "0.1.0",
+  "description": "Track B dev harness. Replaced by extension/manifest.json the moment Track A lands it.",
+  "permissions": ["storage"],
+  "host_permissions": ["<all_urls>"],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content/index.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["pages/course/*", "pages/review/*"],
+      "matches": ["<all_urls>"]
+    }
+  ]
+}

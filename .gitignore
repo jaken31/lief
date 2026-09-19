@@ -1,0 +1,12 @@
+node_modules/
+dist/
+coverage/
+
+# Secrets — never commit. The Safe Browsing key lives here.
+.env
+.env.*
+!.env.example
+
+*.log
+.DS_Store
+.vite/
