@@ -95,8 +95,13 @@ docs/
 
 ## Status
 
-Hackathon build, two-hour timebox. The course surface (`extension/pages/course/`) is complete:
-five lessons and a renderer that routes on `location.hash` as the `lessonId`. The build scaffold,
-detection engine, banner, and dashboard are in progress — see [docs/BUILD-TRACKS.md](docs/BUILD-TRACKS.md)
-for ownership. The `npm` commands above describe the intended scaffold and do not work until it
-lands.
+Hackathon build, two-hour timebox. See [docs/BUILD-TRACKS.md](docs/BUILD-TRACKS.md) for ownership.
+
+Landed: the Vite scaffold and the warning banner (Track B), the review dashboard and demo seed
+fixture (Track C), and the course — five lessons and a hash-routed renderer (Track D).
+
+Outstanding: Track A — the detection engine, the manifest, and the shared contracts in
+`extension/lib/`. Until `lib/events.ts` and `lib/lessons.ts` exist, `npm run typecheck` reports
+missing-module errors for every file importing them and the pages build fails, so `dist/` has no
+course or review page yet. `npm run build` still emits the content script and prints which passes
+it skipped, and loading `dist/` unpacked uses a dev manifest with no service worker.
