@@ -165,10 +165,10 @@ export async function getEvents(): Promise<Result<RiskEvent[]>> {
 }
 
 /** One-click wipe, reachable from the dashboard main view. PRD §7. */
-export async function clearEvents(): Promise<Result<true>> {
+export async function clearEvents(): Promise<Result<void>> {
   try {
     await chrome.storage.local.remove(K_EVENTS);
-    return ok(true);
+    return ok(undefined);
   } catch (e) {
     return err({ kind: 'storage', detail: String(e) });
   }
